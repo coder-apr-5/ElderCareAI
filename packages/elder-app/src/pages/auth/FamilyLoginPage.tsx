@@ -15,7 +15,7 @@ import {
     getFriendlyErrorMessage
 } from '@elder-nest/shared';
 
-const LoginPage = () => {
+const FamilyLoginPage = () => {
     const navigate = useNavigate();
     const [error, setError] = useState<string | null>(null);
     const [isLoading, setIsLoading] = useState(false);
@@ -40,9 +40,10 @@ const LoginPage = () => {
         try {
             await signInWithEmail(data.email, data.password);
             if (roleParam === 'elder') {
-                navigate('/elder');
+                navigate('/dashboard');
             } else {
-                navigate('/family');
+                // Navigate to dashboard for family too in this app context, or a placeholder /family route
+                navigate('/dashboard');
             }
         } catch (err: any) {
             setError(getFriendlyErrorMessage(err.code));
@@ -201,4 +202,4 @@ const LoginPage = () => {
     );
 };
 
-export default LoginPage;
+export default FamilyLoginPage;

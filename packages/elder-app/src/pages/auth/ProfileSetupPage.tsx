@@ -26,7 +26,7 @@ const ProfileSetupPage = () => {
 
     const handleComplete = async () => {
         setIsLoading(true);
-        
+
         try {
             // Save medications to Firestore
             const user = auth.currentUser;
@@ -38,10 +38,10 @@ const ProfileSetupPage = () => {
                     profileSetupComplete: true
                 });
             }
-            
+
             setComplete(true);
             setTimeout(() => {
-                navigate('/');
+                navigate('/dashboard');
             }, 2000);
         } catch (error) {
             console.error('Error saving profile:', error);
@@ -57,7 +57,7 @@ const ProfileSetupPage = () => {
                     animate={{ scale: 1, opacity: 1 }}
                     className="text-center"
                 >
-                    <motion.div 
+                    <motion.div
                         initial={{ scale: 0 }}
                         animate={{ scale: 1 }}
                         transition={{ type: "spring", delay: 0.2 }}
@@ -170,13 +170,11 @@ const ProfileSetupPage = () => {
                                         <button
                                             type="button"
                                             onClick={() => setReminders({ ...reminders, medication: !reminders.medication })}
-                                            className={`w-12 h-7 rounded-full relative transition-colors ${
-                                                reminders.medication ? 'bg-green-500' : 'bg-gray-300'
-                                            }`}
+                                            className={`w-12 h-7 rounded-full relative transition-colors ${reminders.medication ? 'bg-green-500' : 'bg-gray-300'
+                                                }`}
                                         >
-                                            <div className={`absolute top-0.5 w-6 h-6 bg-white rounded-full shadow-md transition-all ${
-                                                reminders.medication ? 'right-0.5' : 'left-0.5'
-                                            }`} />
+                                            <div className={`absolute top-0.5 w-6 h-6 bg-white rounded-full shadow-md transition-all ${reminders.medication ? 'right-0.5' : 'left-0.5'
+                                                }`} />
                                         </button>
                                     </div>
                                     <div className="flex items-center justify-between">
@@ -184,13 +182,11 @@ const ProfileSetupPage = () => {
                                         <button
                                             type="button"
                                             onClick={() => setReminders({ ...reminders, family: !reminders.family })}
-                                            className={`w-12 h-7 rounded-full relative transition-colors ${
-                                                reminders.family ? 'bg-green-500' : 'bg-gray-300'
-                                            }`}
+                                            className={`w-12 h-7 rounded-full relative transition-colors ${reminders.family ? 'bg-green-500' : 'bg-gray-300'
+                                                }`}
                                         >
-                                            <div className={`absolute top-0.5 w-6 h-6 bg-white rounded-full shadow-md transition-all ${
-                                                reminders.family ? 'right-0.5' : 'left-0.5'
-                                            }`} />
+                                            <div className={`absolute top-0.5 w-6 h-6 bg-white rounded-full shadow-md transition-all ${reminders.family ? 'right-0.5' : 'left-0.5'
+                                                }`} />
                                         </button>
                                     </div>
                                 </div>
@@ -223,9 +219,9 @@ const ProfileSetupPage = () => {
 
                             {/* Skip */}
                             <p className="text-center">
-                                <button 
+                                <button
                                     type="button"
-                                    onClick={() => navigate('/')}
+                                    onClick={() => navigate('/dashboard')}
                                     className="text-gray-500 text-sm hover:text-gray-700 transition-colors"
                                 >
                                     Skip for now

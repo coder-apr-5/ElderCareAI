@@ -1,6 +1,23 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+/* ElderGuardAI Brand Colors */
+:root {
+  --deep-trust-blue: #1E40AF;
+  --warm-care-teal: #14B8A6;
+  --soft-elder-beige: #F5F1E8;
+  --life-green: #10B981;
+  --alert-amber: #F59E0B;
+  --pure-white: #FFFFFF;
+  --deep-charcoal: #1F2937;
+  
+  /* Hero Gradient */
+  --hero-gradient: linear-gradient(135deg, #1E40AF 0%, #14B8A6 100%);
+  --soft-glow: radial-gradient(circle, rgba(20,184,166,0.1) 0%, transparent 70%);
+}
 
 @layer base {
   :root {
@@ -15,20 +32,20 @@
     --popover: 0 0% 100%;
     --popover-foreground: 224 71% 4%;
 
-    /* Primary - Trustworthy Blue */
-    --primary: 221 83% 53%;
+    /* Primary - Deep Trust Blue */
+    --primary: 221 83% 40%;
     --primary-foreground: 210 40% 98%;
 
-    /* Secondary - Calming Teal/Green */
-    --secondary: 162 47% 50%;
+    /* Secondary - Warm Care Teal */
+    --secondary: 166 64% 40%;
     --secondary-foreground: 210 40% 98%;
 
     /* Muted */
     --muted: 210 40% 96.1%;
     --muted-foreground: 215.4 16.3% 46.9%;
 
-    /* Accent - Warm Orange for attention */
-    --accent: 32 95% 60%;
+    /* Accent - Alert Amber */
+    --accent: 38 92% 50%;
     --accent-foreground: 210 40% 98%;
 
     /* Destructive/Emergency */
@@ -38,26 +55,79 @@
     --border: 214.3 31.8% 91.4%;
     --input: 214.3 31.8% 91.4%;
     --ring: 221 83% 53%;
-    --radius: 1.5rem; /* Friendly, rounded corners */
+    --radius: 1rem;
   }
 
-  /* Custom Utilities for Glassmorphism */
-  .glass-panel {
-    @apply bg-white/80 backdrop-blur-lg border border-white/50 shadow-xl;
-  }
-}
-
-@layer base {
   * {
     @apply border-border;
   }
-  body {
-    @apply bg-background text-foreground bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-blue-50 via-white to-orange-50 min-h-screen selection:bg-primary/20;
-  }
   
-  /* Smooth scrolling */
   html {
     scroll-behavior: smooth;
+  }
+  
+  body {
+    @apply bg-background text-foreground antialiased;
+    font-family: 'Inter', system-ui, sans-serif;
+  }
+
+  /* OCR-A Style for Brand Name */
+  .font-brand {
+    font-family: 'Courier New', 'Lucida Console', 'Monaco', monospace;
+    letter-spacing: 0.05em;
+  }
+}
+
+@layer components {
+  /* Glass Panel Effect */
+  .glass-panel {
+    @apply bg-white/80 backdrop-blur-lg border border-white/50 shadow-xl;
+  }
+
+  /* Gradient Button */
+  .btn-gradient {
+    background: linear-gradient(135deg, var(--deep-trust-blue) 0%, var(--warm-care-teal) 100%);
+    @apply text-white font-semibold rounded-full transition-all duration-300;
+  }
+
+  .btn-gradient:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 40px -10px rgba(30, 64, 175, 0.5);
+  }
+
+  /* Card Hover Effect */
+  .card-hover {
+    @apply transition-all duration-300;
+  }
+
+  .card-hover:hover {
+    transform: translateY(-8px);
+    box-shadow: 0 20px 40px -15px rgba(0, 0, 0, 0.15);
+  }
+
+  /* Section Container */
+  .section-container {
+    @apply max-w-7xl mx-auto px-6;
+  }
+
+  /* Gradient Text */
+  .gradient-text {
+    background: linear-gradient(135deg, var(--deep-trust-blue) 0%, var(--warm-care-teal) 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+}
+
+@layer utilities {
+  /* Hide scrollbar but allow scrolling */
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+  
+  .no-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
   }
 }
 
@@ -67,6 +137,47 @@
   100% { transform: scale(2.5); opacity: 0; }
 }
 
+@keyframes float {
+  0%, 100% { transform: translateY(0px); }
+  50% { transform: translateY(-20px); }
+}
+
+@keyframes glow {
+  0%, 100% { box-shadow: 0 0 20px rgba(20, 184, 166, 0.3); }
+  50% { box-shadow: 0 0 40px rgba(20, 184, 166, 0.6); }
+}
+
+@keyframes gradient-shift {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
 .animate-pulse-ring {
   animation: pulse-ring 3s cubic-bezier(0.455, 0.03, 0.515, 0.955) infinite;
+}
+
+.animate-float {
+  animation: float 3s ease-in-out infinite;
+}
+
+.animate-glow {
+  animation: glow 2s ease-in-out infinite;
+}
+
+.animate-gradient {
+  background-size: 200% 200%;
+  animation: gradient-shift 4s ease infinite;
+}
+
+/* Accessibility - Reduced Motion */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
 }

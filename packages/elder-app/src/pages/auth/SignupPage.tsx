@@ -62,7 +62,7 @@ const SignupPage = () => {
     return (
         <div className="h-screen flex overflow-hidden">
             {/* Left Panel - Warm Gradient with Branding */}
-            <motion.div 
+            <motion.div
                 initial={{ opacity: 0, x: -50 }}
                 animate={{ opacity: 1, x: 0 }}
                 transition={{ duration: 0.6 }}
@@ -78,21 +78,21 @@ const SignupPage = () => {
                 </div>
 
                 {/* Floating Icons */}
-                <motion.div 
+                <motion.div
                     animate={{ y: [0, -10, 0] }}
                     transition={{ duration: 3, repeat: Infinity }}
                     className="absolute top-24 right-16 text-white/30"
                 >
                     <Sun size={40} />
                 </motion.div>
-                <motion.div 
+                <motion.div
                     animate={{ scale: [1, 1.1, 1] }}
                     transition={{ duration: 2, repeat: Infinity }}
                     className="absolute bottom-32 left-12 text-white/25"
                 >
                     <Heart size={36} fill="currentColor" />
                 </motion.div>
-                <motion.div 
+                <motion.div
                     animate={{ rotate: [0, 10, -10, 0] }}
                     transition={{ duration: 4, repeat: Infinity }}
                     className="absolute top-1/2 right-8 text-white/20"
@@ -108,7 +108,7 @@ const SignupPage = () => {
                             <div className="w-10 h-10 bg-white/20 backdrop-blur-sm rounded-xl flex items-center justify-center">
                                 <Heart className="w-6 h-6 text-white" fill="currentColor" />
                             </div>
-                            <span className="text-xl font-bold tracking-tight">ElderNest</span>
+                            <span className="text-xl font-bold tracking-tight">ElderGuardAI</span>
                         </div>
 
                         <h1 className="text-3xl font-bold leading-tight mb-3">
@@ -123,22 +123,20 @@ const SignupPage = () => {
                     {/* Step Progress */}
                     <div className="space-y-3">
                         {[1, 2, 3].map((s) => (
-                            <div 
-                                key={s} 
-                                className={`flex items-center gap-3 p-3 rounded-xl transition-all ${
-                                    s === step ? 'bg-white/20 backdrop-blur-sm' : 'opacity-60'
-                                }`}
+                            <div
+                                key={s}
+                                className={`flex items-center gap-3 p-3 rounded-xl transition-all ${s === step ? 'bg-white/20 backdrop-blur-sm' : 'opacity-60'
+                                    }`}
                             >
-                                <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold ${
-                                    s < step ? 'bg-green-400 text-white' : 
-                                    s === step ? 'bg-white text-orange-500' : 
-                                    'bg-white/30 text-white'
-                                }`}>
+                                <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold ${s < step ? 'bg-green-400 text-white' :
+                                        s === step ? 'bg-white text-orange-500' :
+                                            'bg-white/30 text-white'
+                                    }`}>
                                     {s < step ? <Check size={16} /> : s}
                                 </div>
                                 <div>
-                                    <p className="font-medium text-sm">{stepTitles[s-1].title}</p>
-                                    <p className="text-xs text-white/70">{stepTitles[s-1].subtitle}</p>
+                                    <p className="font-medium text-sm">{stepTitles[s - 1].title}</p>
+                                    <p className="text-xs text-white/70">{stepTitles[s - 1].subtitle}</p>
                                 </div>
                             </div>
                         ))}
@@ -155,7 +153,7 @@ const SignupPage = () => {
             </motion.div>
 
             {/* Right Panel - Form */}
-            <motion.div 
+            <motion.div
                 initial={{ opacity: 0, x: 50 }}
                 animate={{ opacity: 1, x: 0 }}
                 transition={{ duration: 0.6, delay: 0.2 }}
@@ -174,19 +172,18 @@ const SignupPage = () => {
                     {/* Step Indicator (Mobile) */}
                     <div className="lg:hidden flex justify-center gap-2 mb-6">
                         {[1, 2, 3].map((s) => (
-                            <div 
+                            <div
                                 key={s}
-                                className={`w-3 h-3 rounded-full transition-all ${
-                                    s <= step ? 'bg-orange-500' : 'bg-gray-200'
-                                } ${s === step ? 'scale-125' : ''}`}
+                                className={`w-3 h-3 rounded-full transition-all ${s <= step ? 'bg-orange-500' : 'bg-gray-200'
+                                    } ${s === step ? 'scale-125' : ''}`}
                             />
                         ))}
                     </div>
 
                     {/* Header */}
                     <div className="mb-6 text-center lg:text-left">
-                        <h2 className="text-2xl font-bold text-gray-900 mb-1">{stepTitles[step-1].title}</h2>
-                        <p className="text-gray-500 text-sm">{stepTitles[step-1].subtitle}</p>
+                        <h2 className="text-2xl font-bold text-gray-900 mb-1">{stepTitles[step - 1].title}</h2>
+                        <p className="text-gray-500 text-sm">{stepTitles[step - 1].subtitle}</p>
                     </div>
 
                     {/* Form */}

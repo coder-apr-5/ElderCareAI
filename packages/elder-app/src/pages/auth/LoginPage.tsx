@@ -34,7 +34,7 @@ const LoginPage = () => {
         setError(null);
         try {
             await signInWithEmail(data.email, data.password);
-            navigate('/'); // Redirect to dashboard
+            navigate('/dashboard'); // Redirect to elder dashboard
         } catch (err: any) {
             setError(getFriendlyErrorMessage(err.code));
         } finally {
@@ -45,7 +45,7 @@ const LoginPage = () => {
     return (
         <div className="h-screen flex overflow-hidden">
             {/* Left Panel - Warm Gradient with Branding */}
-            <motion.div 
+            <motion.div
                 initial={{ opacity: 0, x: -50 }}
                 animate={{ opacity: 1, x: 0 }}
                 transition={{ duration: 0.6 }}
@@ -62,21 +62,21 @@ const LoginPage = () => {
                 </div>
 
                 {/* Floating Icons */}
-                <motion.div 
+                <motion.div
                     animate={{ y: [0, -10, 0] }}
                     transition={{ duration: 3, repeat: Infinity }}
                     className="absolute top-32 right-20 text-white/30"
                 >
                     <Sun size={48} />
                 </motion.div>
-                <motion.div 
+                <motion.div
                     animate={{ y: [0, 10, 0] }}
                     transition={{ duration: 4, repeat: Infinity }}
                     className="absolute bottom-60 left-16 text-white/20"
                 >
                     <Leaf size={56} />
                 </motion.div>
-                <motion.div 
+                <motion.div
                     animate={{ scale: [1, 1.1, 1] }}
                     transition={{ duration: 2, repeat: Infinity }}
                     className="absolute top-1/2 right-32 text-white/25"
@@ -92,7 +92,7 @@ const LoginPage = () => {
                             <div className="w-12 h-12 bg-white/20 backdrop-blur-sm rounded-xl flex items-center justify-center">
                                 <Heart className="w-7 h-7 text-white" fill="currentColor" />
                             </div>
-                            <span className="text-2xl font-bold tracking-tight">ElderNest</span>
+                            <span className="text-2xl font-bold tracking-tight">ElderGuardAI</span>
                         </div>
 
                         {/* Main Tagline */}
@@ -125,7 +125,7 @@ const LoginPage = () => {
             </motion.div>
 
             {/* Right Panel - Login Form */}
-            <motion.div 
+            <motion.div
                 initial={{ opacity: 0, x: 50 }}
                 animate={{ opacity: 1, x: 0 }}
                 transition={{ duration: 0.6, delay: 0.2 }}
@@ -258,15 +258,15 @@ const LoginPage = () => {
                         {/* Google Login */}
                         <OAuthButton
                             role="elder"
-                            onSuccess={() => navigate('/')}
+                            onSuccess={() => navigate('/dashboard')}
                             onError={(msg) => setError(msg)}
                         />
 
                         {/* Sign Up Link */}
                         <p className="text-center text-gray-600 pt-2">
                             New to ElderNest?{' '}
-                            <Link 
-                                to="/auth/signup" 
+                            <Link
+                                to="/auth/signup"
                                 className="text-orange-500 font-semibold hover:text-orange-600 transition-colors"
                             >
                                 Create an account
