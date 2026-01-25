@@ -11,9 +11,9 @@ import { AlertsPage } from "@/pages/family/AlertsPage";
 import { ProfilePage } from "@/pages/family/ProfilePage";
 import { SettingsPage } from "@/pages/family/SettingsPage";
 
-// Elder Pages
-import { HomePage as ElderHomePage } from "@/pages/elder/HomePage";
-import { WelcomePage } from "@/pages/elder/WelcomePage";
+// Elder Pages - REMOVED (Use separate Elder App)
+// import { HomePage as ElderHomePage } from "@/pages/elder/HomePage";
+// import { WelcomePage } from "@/pages/elder/WelcomePage";
 
 // Auth
 import LoginPage from "@/pages/auth/LoginPage";
@@ -39,17 +39,8 @@ function App() {
           <Route path="/auth/forgot-password" element={<ForgotPasswordPage />} />
           <Route path="/auth/profile-setup" element={<ProfileSetupPage />} />
 
-          {/* Elder Portal */}
-          <Route path="/elder" element={
-            <ProtectedRoute allowedRoles={['elder']}>
-              <ElderHomePage />
-            </ProtectedRoute>
-          } />
-          <Route path="/elder/welcome" element={
-            <ProtectedRoute allowedRoles={['elder']}>
-              <WelcomePage />
-            </ProtectedRoute>
-          } />
+          {/* Elder Portal - Redirects are handled in LandingPage to external app */}
+          {/* Routes removed to prevent confusion with actual Elder App on port 5174 */}
 
           {/* Family Portal */}
           <Route path="/family" element={

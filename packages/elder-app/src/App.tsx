@@ -30,7 +30,11 @@ function App() {
             <Route path="/auth/login" element={<LoginPage />} />
             <Route path="/auth/signup" element={<SignupPage />} />
             <Route path="/auth/forgot-password" element={<ForgotPasswordPage />} />
-            <Route path="/auth/profile-setup" element={<ProfileSetupPage />} />
+            <Route path="/auth/profile-setup" element={
+              <ProtectedRoute allowedRoles={['elder']} requireSetup={false}>
+                <ProfileSetupPage />
+              </ProtectedRoute>
+            } />
           </Routes>
         </div>
       </BrowserRouter>

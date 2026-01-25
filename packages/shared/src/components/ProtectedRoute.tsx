@@ -1,35 +1,77 @@
 import React, { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { onAuthStateChanged } from '../lib/firebase/auth'; // Ensure this path is correct
+import { doc, getDoc } from 'firebase/firestore';
+import { db } from '../lib/firebase/config';
 import { Loader2 } from 'lucide-react';
 
 export interface ProtectedRouteProps {
     children: React.ReactNode;
     allowedRoles?: ('elder' | 'family')[];
+    requireSetup?: boolean;
 }
 
-const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children, allowedRoles: _allowedRoles }) => {
+const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children, allowedRoles, requireSetup = true }) => {
     const [loading, setLoading] = useState(true);
-    const [_user, setUser] = useState<any>(null); // Ideally type this with your user type
+    const [user, setUser] = useState<any>(null);
     const navigate = useNavigate();
+    const location = useLocation();
 
     useEffect(() => {
         const unsubscribe = onAuthStateChanged(async (firebaseUser) => {
             if (!firebaseUser) {
-                navigate('/auth/login', { replace: true });
+                navigate('/auth/login', { replace: true, state: { from: location } });
                 return;
             }
 
-            // Optional: Fetch full user profile here to check roles/completion
-            // const profile = await getUserProfile(firebaseUser.uid); 
-            // if (allowedRoles && !allowedRoles.includes(profile.role)) ... 
+            try {
+                // Fetch full user profile
+                const userDocRef = doc(db, 'users', firebaseUser.uid);
+                const userSnap = await getDoc(userDocRef);
+                
+                if (!userSnap.exists()) {
+                    // User authenticated but no DB record? Rare.
+                    console.error("No user document found");
+                     navigate('/auth/login');
+                     return;
+                }
 
-            setUser(firebaseUser);
-            setLoading(false);
+                const userData = userSnap.data();
+                
+                // 1. Role Check
+                if (allowedRoles && !allowedRoles.includes(userData.role)) {
+                    // Wrong role (e.g. family trying to access elder pages)
+                    // Redirect to their appropriate home or denied page
+                    if (userData.role === 'family') navigate('/family'); 
+                    else navigate('/unauthorized'); 
+                    return;
+                }
+
+                // 2. Profile Setup Check
+                // If the route requires setup, but user hasn't completed it -> Redirect to Setup
+                if (requireSetup && !userData.profileSetupComplete && userData.role === 'elder') {
+                    navigate('/auth/profile-setup');
+                    return;
+                }
+                
+                // If we are ON the setup page, but setup IS complete -> Redirect to Home
+                // This prevents users from getting stuck in setup loop or redoing it unnecessarily
+                if (location.pathname === '/auth/profile-setup' && userData.profileSetupComplete) {
+                     navigate('/');
+                     return;
+                }
+
+                setUser({ ...firebaseUser, ...userData });
+                setLoading(false);
+
+            } catch (err) {
+                console.error("Error verifying user session:", err);
+                navigate('/auth/login');
+            }
         });
 
         return () => unsubscribe();
-    }, [navigate]);
+    }, [navigate, allowedRoles, requireSetup, location]);
 
     if (loading) {
         return (

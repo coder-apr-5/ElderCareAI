@@ -14,7 +14,12 @@ import {
     setDoc,
     getDoc,
     updateDoc,
-    serverTimestamp
+    serverTimestamp,
+    collection,
+    query,
+    where,
+    getDocs,
+    arrayUnion
 } from 'firebase/firestore';
 import { auth, db } from './config';
 export { auth, db };
@@ -63,9 +68,6 @@ export const signUpElder = async (data: any) => {
         role: 'elder'
     };
 
-    // If they provided a code to link to a family member immediately (logic for linking would go here or separate function)
-    // For now just saving the user.
-
     await setDoc(doc(db, 'users', user.uid), {
         ...elderData,
         uid: user.uid,
@@ -77,19 +79,44 @@ export const signUpElder = async (data: any) => {
 };
 
 export const signUpFamily = async (data: any) => {
-    const { email, password, fullName, phone, relationship, connectionCode: _connectionCode } = data;
+    const { email, password, fullName, phone, relationship, connectionCode } = data;
 
     const userCredential = await createUserWithEmailAndPassword(auth, email, password);
     const user = userCredential.user;
 
     await updateProfile(user, { displayName: fullName });
 
+    let eldersConnected: string[] = [];
+
+    // Link Elder Logic
+    if (connectionCode) {
+        try {
+            const usersRef = collection(db, 'users');
+            // Query for an elder with this connection code
+            const q = query(usersRef, where("connectionCode", "==", connectionCode), where("role", "==", "elder"));
+            const querySnapshot = await getDocs(q);
+
+            if (!querySnapshot.empty) {
+                const elderDoc = querySnapshot.docs[0];
+                const elderId = elderDoc.id;
+                eldersConnected.push(elderId);
+
+                // Update the Elder's doc to include this family member
+                await updateDoc(doc(db, 'users', elderId), {
+                    familyMembers: arrayUnion(user.uid)
+                });
+            }
+        } catch (e) {
+            console.error("Failed to link elder during signup", e);
+        }
+    }
+
     const familyData: Omit<FamilyUser, 'createdAt' | 'lastLogin' | 'uid'> = {
         email,
         fullName,
-        phone,
-        relationship,
-        eldersConnected: [], // Logic to link via connectionCode would act here
+        phone: phone || null,  // Firestore does not accept undefined
+        relationship: relationship || 'family',
+        eldersConnected: eldersConnected, 
         role: 'family'
     };
 
@@ -99,9 +126,6 @@ export const signUpFamily = async (data: any) => {
         createdAt: serverTimestamp(),
         lastLogin: serverTimestamp(),
     });
-
-    // If connectionCode provided, implement linking logic here
-    // ...
 
     return user;
 };

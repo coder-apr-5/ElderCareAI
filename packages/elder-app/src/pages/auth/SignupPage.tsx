@@ -3,7 +3,7 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Link, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { User, Mail, Lock, Calendar, Phone, Link as LinkIcon, Check, ChevronRight, ChevronLeft, Heart, Sun, Sparkles } from 'lucide-react';
+import { User, Mail, Lock, Calendar, Phone, Check, ChevronRight, ChevronLeft, Heart, Sun, Sparkles } from 'lucide-react';
 import { z } from 'zod';
 
 import {
@@ -44,19 +44,20 @@ const SignupPage = () => {
         setIsLoading(true);
         setError(null);
         try {
+            console.log("Submitting elder signup...", data);
             await signUpElder(data);
+            console.log("Signup successful, navigating to profile setup...");
             navigate('/auth/profile-setup');
         } catch (err: any) {
-            setError(getFriendlyErrorMessage(err.code));
-        } finally {
-            setIsLoading(false);
+            console.error("Signup error:", err);
+            setError(getFriendlyErrorMessage(err.code) || "Signup failed. Please try again.");
+            setIsLoading(false); 
         }
     };
 
     const stepTitles = [
         { title: 'Account Details', subtitle: 'Create your login credentials' },
         { title: 'Personal Info', subtitle: 'Tell us a bit about yourself' },
-        { title: 'Family Connection', subtitle: 'Connect with your loved ones' }
     ];
 
     return (
@@ -122,7 +123,7 @@ const SignupPage = () => {
 
                     {/* Step Progress */}
                     <div className="space-y-3">
-                        {[1, 2, 3].map((s) => (
+                        {[1, 2].map((s) => (
                             <div 
                                 key={s} 
                                 className={`flex items-center gap-3 p-3 rounded-xl transition-all ${
@@ -173,7 +174,7 @@ const SignupPage = () => {
 
                     {/* Step Indicator (Mobile) */}
                     <div className="lg:hidden flex justify-center gap-2 mb-6">
-                        {[1, 2, 3].map((s) => (
+                        {[1, 2].map((s) => (
                             <div 
                                 key={s}
                                 className={`w-3 h-3 rounded-full transition-all ${
@@ -330,43 +331,9 @@ const SignupPage = () => {
                                         </div>
                                         {errors.emergencyContact && <p className="text-red-500 text-xs mt-1">{errors.emergencyContact.message}</p>}
                                     </div>
-                                </motion.div>
-                            )}
-
-                            {step === 3 && (
-                                <motion.div
-                                    key="step3"
-                                    initial={{ opacity: 0, x: 20 }}
-                                    animate={{ opacity: 1, x: 0 }}
-                                    exit={{ opacity: 0, x: -20 }}
-                                    className="space-y-4"
-                                >
-                                    <div className="text-center mb-4">
-                                        <div className="w-14 h-14 bg-gradient-to-br from-orange-400 to-pink-400 rounded-full flex items-center justify-center mx-auto mb-3 text-white">
-                                            <LinkIcon size={28} />
-                                        </div>
-                                        <p className="text-gray-500 text-sm">
-                                            If a family member gave you a code, enter it below. Otherwise, you can skip this.
-                                        </p>
-                                    </div>
-
-                                    {/* Connection Code */}
-                                    <div>
-                                        <label className="block text-gray-700 font-medium mb-1 text-sm">Connection Code (Optional)</label>
-                                        <div className="relative">
-                                            <LinkIcon className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
-                                            <input
-                                                {...register('connectionCode')}
-                                                placeholder="XXX-XXX"
-                                                maxLength={6}
-                                                className="w-full pl-12 pr-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-orange-400 focus:border-transparent bg-white text-center tracking-widest uppercase font-mono"
-                                            />
-                                        </div>
-                                        {errors.connectionCode && <p className="text-red-500 text-xs mt-1">{errors.connectionCode.message}</p>}
-                                    </div>
 
                                     {/* Terms */}
-                                    <div className="flex items-start gap-3 p-3 bg-gray-50 rounded-xl">
+                                    <div className="flex items-start gap-3 p-3 bg-gray-50 rounded-xl mt-4">
                                         <input
                                             type="checkbox"
                                             {...register('agreeToTerms')}
@@ -376,7 +343,7 @@ const SignupPage = () => {
                                             I agree to the <Link to="#" className="text-orange-500 underline">Terms of Service</Link> and <Link to="#" className="text-orange-500 underline">Privacy Policy</Link>
                                         </p>
                                     </div>
-                                    {errors.agreeToTerms && <p className="text-red-500 text-xs">{errors.agreeToTerms.message}</p>}
+                                    {errors.agreeToTerms && <p className="text-red-500 text-xs mt-1">{errors.agreeToTerms.message}</p>}
                                 </motion.div>
                             )}
                         </AnimatePresence>
@@ -406,7 +373,7 @@ const SignupPage = () => {
                                 </motion.button>
                             )}
 
-                            {step < 3 ? (
+                            {step < 2 ? (
                                 <motion.button
                                     type="button"
                                     onClick={nextStep}

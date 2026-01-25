@@ -5,7 +5,7 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import PhoneInput from '../../components/auth/PhoneInput';
-import { familySignup } from '../../services/authApi';
+import { signUpFamily, getFriendlyErrorMessage } from '@elder-nest/shared';
 
 const FamilySignupPage: React.FC = () => {
     const navigate = useNavigate();
@@ -18,6 +18,7 @@ const FamilySignupPage: React.FC = () => {
     const [fullName, setFullName] = useState('');
     const [phone, setPhone] = useState('');
     const [countryCode, setCountryCode] = useState('IN');
+    const [connectionCode, setConnectionCode] = useState('');
     const [showPassword, setShowPassword] = useState(false);
     const [agreeTerms, setAgreeTerms] = useState(false);
 
@@ -73,21 +74,30 @@ const FamilySignupPage: React.FC = () => {
         setError('');
 
         try {
-            const result = await familySignup({
+            await signUpFamily({
                 email: email.trim().toLowerCase(),
                 password,
                 fullName: fullName.trim(),
-                phone: phone || undefined,
-                countryCode: phone ? countryCode : undefined,
+                phone: phone || '', // Pass empty string or value, handled in auth.ts
+                countryCode: phone ? countryCode : '',
+                connectionCode: connectionCode.trim(), 
             });
 
-            if (result.success) {
-                navigate('/family/dashboard');
-            } else {
-                setError(result.message || 'Signup failed');
+            // Authentication state listener in App will redirect, but we force nav here too
+            navigate('/family');
+
+        } catch (err: any) {
+            console.error("Signup Error Details:", err);
+            
+            // Priority 1: Use specific friendly message if mapped
+            let message = getFriendlyErrorMessage(err.code);
+            
+            // Priority 2: Use direct error message if it's not the generic fallback
+            if (message === 'An unexpected error occurred. Please try again.' && err.message) {
+                message = err.message;
             }
-        } catch (err) {
-            setError(err instanceof Error ? err.message : 'Signup failed');
+            
+            setError(message);
         } finally {
             setIsLoading(false);
         }
@@ -210,6 +220,24 @@ const FamilySignupPage: React.FC = () => {
                         placeholder="Enter your phone number"
                         disabled={isLoading}
                     />
+
+                    {/* Connection Code Input */}
+                    <div className="form-group" style={{ marginTop: '16px' }}>
+                        <label htmlFor="connectionCode">Elder Connection Code (Optional)</label>
+                        <input
+                            id="connectionCode"
+                            type="text"
+                            placeholder="e.g. 123456"
+                            className="font-mono tracking-wider text-center uppercase"
+                            maxLength={6}
+                            disabled={isLoading}
+                            value={connectionCode}
+                            onChange={(e) => setConnectionCode(e.target.value)}
+                        />
+                        <p className="text-xs text-gray-500 mt-1">
+                            Ask your elder family member for their 6-digit code.
+                        </p>
+                    </div>
 
                     <div className="terms-checkbox">
                         <input
