@@ -277,7 +277,7 @@ const HelpSection = () => {
                     </motion.div>
 
                     {/* Family Card */}
-                    <motion.div initial={{ opacity: 0, x: 40 }} whileInView={{ opacity: 1, x: 0 }} viewport={{ once: true }} whileHover={{ scale: 1.02 }} onClick={() => navigate('/auth/login/family')} className="relative overflow-hidden rounded-3xl p-6 md:p-8 cursor-pointer group" style={{ background: `linear-gradient(135deg, ${colors.warmCareTeal}, ${colors.lifeGreen})` }}>
+                    <motion.div initial={{ opacity: 0, x: 40 }} whileInView={{ opacity: 1, x: 0 }} viewport={{ once: true }} whileHover={{ scale: 1.02 }} onClick={() => window.location.href = 'http://localhost:5173/auth/login?role=family'} className="relative overflow-hidden rounded-3xl p-6 md:p-8 cursor-pointer group" style={{ background: `linear-gradient(135deg, ${colors.warmCareTeal}, ${colors.lifeGreen})` }}>
                         <div className="text-white">
                             <div className="mb-6 flex justify-center lg:justify-start">
                                 <div className="p-4 bg-white/20 rounded-2xl w-fit backdrop-blur-sm">

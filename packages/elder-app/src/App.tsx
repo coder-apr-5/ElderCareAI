@@ -7,7 +7,6 @@ import LandingPage from "@/pages/LandingPage";
 
 // Auth Pages
 import LoginPage from "@/pages/auth/LoginPage";
-import FamilyLoginPage from "@/pages/auth/FamilyLoginPage";
 import SignupPage from "@/pages/auth/SignupPage";
 import ForgotPasswordPage from "@/pages/auth/ForgotPasswordPage";
 import ProfileSetupPage from "@/pages/auth/ProfileSetupPage";
@@ -33,7 +32,6 @@ function App() {
             {/* Auth Routes */}
             <Route path="/auth/login" element={<LoginPage />} />
             <Route path="/auth/signup" element={<SignupPage />} />
-            <Route path="/auth/login/family" element={<FamilyLoginPage />} />
             <Route path="/auth/forgot-password" element={<ForgotPasswordPage />} />
             <Route path="/auth/profile-setup" element={<ProfileSetupPage />} />
 
