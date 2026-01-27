@@ -8,7 +8,10 @@
         "dev:elder": "npm run dev --workspace=@elder-nest/elder-app",
         "dev:family": "npm run dev --workspace=@elder-nest/family-dashboard",
         "dev:admin": "npm run dev --workspace=admin-portal",
-        "dev": "npm run dev:elder",
+        "dev:api": "npm run dev --prefix backend/node-api",
+        "dev:chat": "npm run dev --prefix backend/ai-chat-service",
+        "dev:ml": "cd backend/python-ml && uvicorn app.main:app --reload --port 8000",
+        "dev": "concurrently -n \"ELDER,FAMILY,API,CHAT\" -c \"bgGreen.bold,bgTeal.bold,bgBlue.bold,bgMagenta.bold\" \"npm run dev:elder\" \"npm run dev:family\" \"npm run dev:api\" \"npm run dev:chat\"",
         "build": "npm run build --workspaces"
     },
     "devDependencies": {

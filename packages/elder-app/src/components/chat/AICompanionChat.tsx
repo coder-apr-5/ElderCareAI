@@ -7,312 +7,312 @@ import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { io, Socket } from 'socket.io-client';
 
 interface ChatMessage {
-    id: string;
-    elderId: string;
-    role: 'user' | 'assistant' | 'system';
-    content: string;
-    timestamp: Date;
-    metadata?: {
-        mood?: string;
-        routineRelated?: boolean;
-        isProactive?: boolean;
-    };
+  id: string;
+  elderId: string;
+  role: 'user' | 'assistant' | 'system';
+  content: string;
+  timestamp: Date;
+  metadata?: {
+    mood?: string;
+    routineRelated?: boolean;
+    isProactive?: boolean;
+  };
 }
 
 interface AICompanionChatProps {
-    elderId?: string;
-    elderName?: string;
-    companionName?: string;
-    serverUrl?: string;
-    fontSize?: 'normal' | 'large' | 'extra-large';
-    onMoodDetected?: (mood: string) => void;
+  elderId?: string;
+  elderName?: string;
+  companionName?: string;
+  serverUrl?: string;
+  fontSize?: 'normal' | 'large' | 'extra-large';
+  onMoodDetected?: (mood: string) => void;
 }
 
 const COMPANION_NAME = 'Mira';
 
 export const AICompanionChat: React.FC<AICompanionChatProps> = ({
-    elderId = 'elder-demo',
-    elderName = 'dear friend',
-    companionName = COMPANION_NAME,
-    serverUrl = 'http://localhost:5001',
-    fontSize = 'large',
-    onMoodDetected,
+  elderId = 'elder-demo',
+  elderName = 'dear friend',
+  companionName = COMPANION_NAME,
+  serverUrl = import.meta.env.VITE_AI_CHAT_URL || 'http://localhost:5001',
+  fontSize = 'large',
+  onMoodDetected,
 }) => {
-    const [messages, setMessages] = useState<ChatMessage[]>([]);
-    const [inputText, setInputText] = useState('');
-    const [isTyping, setIsTyping] = useState(false);
-    const [isConnected, setIsConnected] = useState(false);
-    const [isReconnecting, setIsReconnecting] = useState(false);
+  const [messages, setMessages] = useState<ChatMessage[]>([]);
+  const [inputText, setInputText] = useState('');
+  const [isTyping, setIsTyping] = useState(false);
+  const [isConnected, setIsConnected] = useState(false);
+  const [isReconnecting, setIsReconnecting] = useState(false);
 
-    const socketRef = useRef<Socket | null>(null);
-    const messagesEndRef = useRef<HTMLDivElement>(null);
-    const inputRef = useRef<HTMLTextAreaElement>(null);
+  const socketRef = useRef<Socket | null>(null);
+  const messagesEndRef = useRef<HTMLDivElement>(null);
+  const inputRef = useRef<HTMLTextAreaElement>(null);
 
-    // Font size multipliers
-    const fontSizes = {
-        normal: { text: '16px', input: '16px', heading: '20px' },
-        large: { text: '20px', input: '20px', heading: '24px' },
-        'extra-large': { text: '24px', input: '24px', heading: '28px' },
+  // Font size multipliers
+  const fontSizes = {
+    normal: { text: '16px', input: '16px', heading: '20px' },
+    large: { text: '20px', input: '20px', heading: '24px' },
+    'extra-large': { text: '24px', input: '24px', heading: '28px' },
+  };
+  const currentFontSize = fontSizes[fontSize];
+
+  // Scroll to bottom when new messages arrive
+  const scrollToBottom = useCallback(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  }, []);
+
+  useEffect(() => {
+    scrollToBottom();
+  }, [messages, scrollToBottom]);
+
+  // Connect to WebSocket
+  useEffect(() => {
+    console.log('🔌 Connecting to AI Chat Service...');
+
+    const socket = io(serverUrl, {
+      transports: ['websocket', 'polling'],
+      reconnectionAttempts: 5,
+      reconnectionDelay: 1000,
+    });
+
+    socketRef.current = socket;
+
+    socket.on('connect', () => {
+      console.log('✅ Connected to AI Chat Service');
+      setIsConnected(true);
+      setIsReconnecting(false);
+
+      // Join as elder
+      socket.emit('elder:join', { elderId, profile: { fullName: elderName, preferredName: elderName } });
+    });
+
+    socket.on('disconnect', () => {
+      console.log('❌ Disconnected from AI Chat Service');
+      setIsConnected(false);
+    });
+
+    socket.on('connect_error', () => {
+      setIsReconnecting(true);
+    });
+
+    // Handle chat history
+    socket.on('chat:history', (history: ChatMessage[]) => {
+      setMessages(history.map(msg => ({
+        ...msg,
+        timestamp: new Date(msg.timestamp),
+      })));
+    });
+
+    // Handle new response
+    socket.on('chat:response', (message: ChatMessage) => {
+      setMessages(prev => [...prev, {
+        ...message,
+        timestamp: new Date(message.timestamp),
+      }]);
+      setIsTyping(false);
+
+      // Notify about mood if detected
+      if (message.metadata?.mood && onMoodDetected) {
+        onMoodDetected(message.metadata.mood);
+      }
+    });
+
+    // Handle proactive message
+    socket.on('companion:proactive', (message: ChatMessage) => {
+      setMessages(prev => [...prev, {
+        ...message,
+        timestamp: new Date(message.timestamp),
+      }]);
+
+      // Play notification sound for proactive messages
+      playNotificationSound();
+    });
+
+    // Handle typing indicator
+    socket.on('chat:typing', (data: { isTyping: boolean }) => {
+      setIsTyping(data.isTyping);
+    });
+
+    // Handle routine reminders
+    socket.on('routine:reminder', (reminder) => {
+      console.log('📅 Routine reminder:', reminder);
+      // The reminder is already sent as a proactive message
+    });
+
+    return () => {
+      socket.disconnect();
     };
-    const currentFontSize = fontSizes[fontSize];
+  }, [serverUrl, elderId, elderName, onMoodDetected]);
 
-    // Scroll to bottom when new messages arrive
-    const scrollToBottom = useCallback(() => {
-        messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-    }, []);
+  // Play notification sound
+  const playNotificationSound = () => {
+    // In production, use a gentle chime sound
+    // For now, use Web Audio API for a simple tone
+    try {
+      const audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
+      const oscillator = audioContext.createOscillator();
+      const gainNode = audioContext.createGain();
 
-    useEffect(() => {
-        scrollToBottom();
-    }, [messages, scrollToBottom]);
+      oscillator.connect(gainNode);
+      gainNode.connect(audioContext.destination);
 
-    // Connect to WebSocket
-    useEffect(() => {
-        console.log('🔌 Connecting to AI Chat Service...');
+      oscillator.frequency.value = 440; // A4 note
+      oscillator.type = 'sine';
+      gainNode.gain.value = 0.1;
 
-        const socket = io(serverUrl, {
-            transports: ['websocket', 'polling'],
-            reconnectionAttempts: 5,
-            reconnectionDelay: 1000,
-        });
+      oscillator.start();
+      oscillator.stop(audioContext.currentTime + 0.2);
+    } catch (e) {
+      // Audio not supported
+    }
+  };
 
-        socketRef.current = socket;
+  // Send message
+  const handleSendMessage = useCallback(() => {
+    const content = inputText.trim();
+    if (!content || !socketRef.current) return;
 
-        socket.on('connect', () => {
-            console.log('✅ Connected to AI Chat Service');
-            setIsConnected(true);
-            setIsReconnecting(false);
-
-            // Join as elder
-            socket.emit('elder:join', { elderId, profile: { fullName: elderName, preferredName: elderName } });
-        });
-
-        socket.on('disconnect', () => {
-            console.log('❌ Disconnected from AI Chat Service');
-            setIsConnected(false);
-        });
-
-        socket.on('connect_error', () => {
-            setIsReconnecting(true);
-        });
-
-        // Handle chat history
-        socket.on('chat:history', (history: ChatMessage[]) => {
-            setMessages(history.map(msg => ({
-                ...msg,
-                timestamp: new Date(msg.timestamp),
-            })));
-        });
-
-        // Handle new response
-        socket.on('chat:response', (message: ChatMessage) => {
-            setMessages(prev => [...prev, {
-                ...message,
-                timestamp: new Date(message.timestamp),
-            }]);
-            setIsTyping(false);
-
-            // Notify about mood if detected
-            if (message.metadata?.mood && onMoodDetected) {
-                onMoodDetected(message.metadata.mood);
-            }
-        });
-
-        // Handle proactive message
-        socket.on('companion:proactive', (message: ChatMessage) => {
-            setMessages(prev => [...prev, {
-                ...message,
-                timestamp: new Date(message.timestamp),
-            }]);
-
-            // Play notification sound for proactive messages
-            playNotificationSound();
-        });
-
-        // Handle typing indicator
-        socket.on('chat:typing', (data: { isTyping: boolean }) => {
-            setIsTyping(data.isTyping);
-        });
-
-        // Handle routine reminders
-        socket.on('routine:reminder', (reminder) => {
-            console.log('📅 Routine reminder:', reminder);
-            // The reminder is already sent as a proactive message
-        });
-
-        return () => {
-            socket.disconnect();
-        };
-    }, [serverUrl, elderId, elderName, onMoodDetected]);
-
-    // Play notification sound
-    const playNotificationSound = () => {
-        // In production, use a gentle chime sound
-        // For now, use Web Audio API for a simple tone
-        try {
-            const audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
-            const oscillator = audioContext.createOscillator();
-            const gainNode = audioContext.createGain();
-
-            oscillator.connect(gainNode);
-            gainNode.connect(audioContext.destination);
-
-            oscillator.frequency.value = 440; // A4 note
-            oscillator.type = 'sine';
-            gainNode.gain.value = 0.1;
-
-            oscillator.start();
-            oscillator.stop(audioContext.currentTime + 0.2);
-        } catch (e) {
-            // Audio not supported
-        }
+    // Add user message immediately
+    const userMessage: ChatMessage = {
+      id: `temp-${Date.now()}`,
+      elderId,
+      role: 'user',
+      content,
+      timestamp: new Date(),
     };
+    setMessages(prev => [...prev, userMessage]);
 
-    // Send message
-    const handleSendMessage = useCallback(() => {
-        const content = inputText.trim();
-        if (!content || !socketRef.current) return;
+    // Send to server
+    socketRef.current.emit('chat:message', { content, elderId });
 
-        // Add user message immediately
-        const userMessage: ChatMessage = {
-            id: `temp-${Date.now()}`,
-            elderId,
-            role: 'user',
-            content,
-            timestamp: new Date(),
-        };
-        setMessages(prev => [...prev, userMessage]);
+    // Clear input
+    setInputText('');
 
-        // Send to server
-        socketRef.current.emit('chat:message', { content, elderId });
+    // Show typing indicator
+    setIsTyping(true);
+  }, [inputText, elderId]);
 
-        // Clear input
-        setInputText('');
+  // Handle keyboard input
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      handleSendMessage();
+    }
+  };
 
-        // Show typing indicator
-        setIsTyping(true);
-    }, [inputText, elderId]);
+  // Quick response buttons
+  const quickResponses = [
+    { text: '👋 Hello!', message: 'Hello!' },
+    { text: '😊 I\'m good', message: 'I\'m feeling good today!' },
+    { text: '💊 Medicine', message: 'I took my medicine.' },
+    { text: '❓ Help', message: 'I need some help.' },
+  ];
 
-    // Handle keyboard input
-    const handleKeyDown = (e: React.KeyboardEvent) => {
-        if (e.key === 'Enter' && !e.shiftKey) {
-            e.preventDefault();
-            handleSendMessage();
-        }
-    };
+  return (
+    <div className="companion-chat" style={{ fontSize: currentFontSize.text }}>
+      {/* Header */}
+      <div className="chat-header">
+        <div className="companion-avatar">
+          <span className="avatar-emoji">🤗</span>
+          <span className={`status-dot ${isConnected ? 'online' : 'offline'}`} />
+        </div>
+        <div className="companion-info">
+          <h2 style={{ fontSize: currentFontSize.heading }}>{companionName}</h2>
+          <p className="status-text">
+            {isConnected
+              ? 'Online - Here for you 24/7'
+              : isReconnecting
+                ? 'Reconnecting...'
+                : 'Offline'}
+          </p>
+        </div>
+      </div>
 
-    // Quick response buttons
-    const quickResponses = [
-        { text: '👋 Hello!', message: 'Hello!' },
-        { text: '😊 I\'m good', message: 'I\'m feeling good today!' },
-        { text: '💊 Medicine', message: 'I took my medicine.' },
-        { text: '❓ Help', message: 'I need some help.' },
-    ];
+      {/* Messages */}
+      <div className="messages-container">
+        {messages.length === 0 && (
+          <div className="welcome-prompt">
+            <span className="welcome-emoji">💝</span>
+            <p>Hi {elderName}! I'm {companionName}, your caring companion.</p>
+            <p>I'm always here to chat, help with reminders, or just keep you company!</p>
+          </div>
+        )}
 
-    return (
-        <div className="companion-chat" style={{ fontSize: currentFontSize.text }}>
-            {/* Header */}
-            <div className="chat-header">
-                <div className="companion-avatar">
-                    <span className="avatar-emoji">🤗</span>
-                    <span className={`status-dot ${isConnected ? 'online' : 'offline'}`} />
-                </div>
-                <div className="companion-info">
-                    <h2 style={{ fontSize: currentFontSize.heading }}>{companionName}</h2>
-                    <p className="status-text">
-                        {isConnected
-                            ? 'Online - Here for you 24/7'
-                            : isReconnecting
-                                ? 'Reconnecting...'
-                                : 'Offline'}
-                    </p>
-                </div>
+        {messages.map((message) => (
+          <div
+            key={message.id}
+            className={`message ${message.role === 'user' ? 'user-message' : 'assistant-message'}`}
+          >
+            {message.role === 'assistant' && (
+              <div className="message-avatar">🤗</div>
+            )}
+            <div className="message-content">
+              <p>{message.content}</p>
+              <span className="message-time">
+                {new Date(message.timestamp).toLocaleTimeString([], {
+                  hour: '2-digit',
+                  minute: '2-digit'
+                })}
+              </span>
             </div>
+          </div>
+        ))}
 
-            {/* Messages */}
-            <div className="messages-container">
-                {messages.length === 0 && (
-                    <div className="welcome-prompt">
-                        <span className="welcome-emoji">💝</span>
-                        <p>Hi {elderName}! I'm {companionName}, your caring companion.</p>
-                        <p>I'm always here to chat, help with reminders, or just keep you company!</p>
-                    </div>
-                )}
-
-                {messages.map((message) => (
-                    <div
-                        key={message.id}
-                        className={`message ${message.role === 'user' ? 'user-message' : 'assistant-message'}`}
-                    >
-                        {message.role === 'assistant' && (
-                            <div className="message-avatar">🤗</div>
-                        )}
-                        <div className="message-content">
-                            <p>{message.content}</p>
-                            <span className="message-time">
-                                {new Date(message.timestamp).toLocaleTimeString([], {
-                                    hour: '2-digit',
-                                    minute: '2-digit'
-                                })}
-                            </span>
-                        </div>
-                    </div>
-                ))}
-
-                {isTyping && (
-                    <div className="message assistant-message typing">
-                        <div className="message-avatar">🤗</div>
-                        <div className="message-content">
-                            <div className="typing-indicator">
-                                <span></span>
-                                <span></span>
-                                <span></span>
-                            </div>
-                        </div>
-                    </div>
-                )}
-
-                <div ref={messagesEndRef} />
+        {isTyping && (
+          <div className="message assistant-message typing">
+            <div className="message-avatar">🤗</div>
+            <div className="message-content">
+              <div className="typing-indicator">
+                <span></span>
+                <span></span>
+                <span></span>
+              </div>
             </div>
+          </div>
+        )}
 
-            {/* Quick Responses */}
-            <div className="quick-responses">
-                {quickResponses.map((qr, index) => (
-                    <button
-                        key={index}
-                        className="quick-response-btn"
-                        onClick={() => {
-                            setInputText(qr.message);
-                            setTimeout(() => inputRef.current?.focus(), 100);
-                        }}
-                    >
-                        {qr.text}
-                    </button>
-                ))}
-            </div>
+        <div ref={messagesEndRef} />
+      </div>
 
-            {/* Input Area */}
-            <div className="input-container">
-                <textarea
-                    ref={inputRef}
-                    value={inputText}
-                    onChange={(e) => setInputText(e.target.value)}
-                    onKeyDown={handleKeyDown}
-                    placeholder={`Type a message to ${companionName}...`}
-                    rows={2}
-                    style={{ fontSize: currentFontSize.input }}
-                    disabled={!isConnected}
-                />
-                <button
-                    className="send-button"
-                    onClick={handleSendMessage}
-                    disabled={!inputText.trim() || !isConnected}
-                    aria-label="Send message"
-                >
-                    <span className="send-icon">➤</span>
-                </button>
-            </div>
+      {/* Quick Responses */}
+      <div className="quick-responses">
+        {quickResponses.map((qr, index) => (
+          <button
+            key={index}
+            className="quick-response-btn"
+            onClick={() => {
+              setInputText(qr.message);
+              setTimeout(() => inputRef.current?.focus(), 100);
+            }}
+          >
+            {qr.text}
+          </button>
+        ))}
+      </div>
 
-            <style>{`
+      {/* Input Area */}
+      <div className="input-container">
+        <textarea
+          ref={inputRef}
+          value={inputText}
+          onChange={(e) => setInputText(e.target.value)}
+          onKeyDown={handleKeyDown}
+          placeholder={`Type a message to ${companionName}...`}
+          rows={2}
+          style={{ fontSize: currentFontSize.input }}
+          disabled={!isConnected}
+        />
+        <button
+          className="send-button"
+          onClick={handleSendMessage}
+          disabled={!inputText.trim() || !isConnected}
+          aria-label="Send message"
+        >
+          <span className="send-icon">➤</span>
+        </button>
+      </div>
+
+      <style>{`
         .companion-chat {
           display: flex;
           flex-direction: column;
@@ -592,8 +592,8 @@ export const AICompanionChat: React.FC<AICompanionChatProps> = ({
           background: #94a3b8;
         }
       `}</style>
-        </div>
-    );
+    </div>
+  );
 };
 
 export default AICompanionChat;

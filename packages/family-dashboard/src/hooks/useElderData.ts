@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 // import axios from 'axios';
 
-// const API_BASE_URL = 'http://localhost:5000/api/v1';
+//const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api/v1';
 
 // Types
 export interface ElderSummary {
@@ -46,11 +46,11 @@ export const useConnectedElders = () => {
                 // 1. Get Family Profile
                 const familyDocRef = doc(db, 'users', user.uid);
                 const familyDoc = await getDoc(familyDocRef);
-                
+
                 if (!familyDoc.exists()) {
-                     setElders([]);
-                     setLoading(false);
-                     return;
+                    setElders([]);
+                    setLoading(false);
+                    return;
                 }
 
                 const familyData = familyDoc.data();
@@ -80,7 +80,7 @@ export const useConnectedElders = () => {
 
                 const fetchedElders = (await Promise.all(elderPromises)).filter(Boolean) as ElderSummary[];
                 setElders(fetchedElders);
-                
+
             } catch (err) {
                 console.error('Failed to fetch elders', err);
                 setError('Failed to load family members');
@@ -125,7 +125,7 @@ export const useElderStatus = (elderId: string | null) => {
                         ...prev!,
                         lastActive: userData?.lastActive?.toDate?.()?.toISOString() || new Date().toISOString(),
                         // Using a simple check for 'isEmergency' if we add that flag to user text, otherwise default false
-                        isEmergency: false, 
+                        isEmergency: false,
                     } as ElderStatus));
                 });
 
@@ -136,13 +136,13 @@ export const useElderStatus = (elderId: string | null) => {
                     orderBy('timestamp', 'desc'),
                     limit(1)
                 );
-                
+
                 unsubscribeMood = onSnapshot(moodQuery, (snapshot) => {
                     if (!snapshot.empty) {
                         const moodData = snapshot.docs[0].data();
                         const moodLabel = moodData.label?.toLowerCase();
                         let normalizedMood: 'happy' | 'okay' | 'sad' = 'okay';
-                        
+
                         if (['happy', 'good', 'great', 'excited'].some(m => moodLabel?.includes(m))) normalizedMood = 'happy';
                         else if (['sad', 'bad', 'terrible', 'depressed'].some(m => moodLabel?.includes(m))) normalizedMood = 'sad';
 
@@ -155,10 +155,10 @@ export const useElderStatus = (elderId: string | null) => {
 
                 // 3. Listen to Latest Risk Score
                 const riskQuery = query(
-                     collection(db, 'riskScores'),
-                     where('userId', '==', elderId),
-                     orderBy('timestamp', 'desc'),
-                     limit(1)
+                    collection(db, 'riskScores'),
+                    where('userId', '==', elderId),
+                    orderBy('timestamp', 'desc'),
+                    limit(1)
                 );
 
                 unsubscribeRisk = onSnapshot(riskQuery, (snapshot) => {
@@ -174,14 +174,14 @@ export const useElderStatus = (elderId: string | null) => {
                         } as ElderStatus));
                     } else {
                         // Default if no risk score yet
-                         setData(prev => ({
+                        setData(prev => ({
                             ...prev!,
                             riskScore: 15,
                             vitals: { heartRate: 72, stability: 'Stable' }
                         } as ElderStatus));
                     }
                 });
-                
+
                 // Initialize default structure while waiting for snapshots
                 setData({
                     mood: 'okay',
@@ -211,7 +211,7 @@ export const useElderStatus = (elderId: string | null) => {
     }, [elderId]);
 
     // Refetch is not needed with real-time listeners, but keeping interface consistent
-    const refresh = () => {}; 
+    const refresh = () => { };
 
     return { data, loading, error, refresh };
 };

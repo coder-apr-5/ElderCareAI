@@ -65,7 +65,7 @@ export function useAICompanion(options: UseAICompanionOptions): UseAICompanionRe
     const {
         elderId,
         elderName = 'Friend',
-        serverUrl = 'http://localhost:5001',
+        serverUrl = import.meta.env.VITE_AI_CHAT_URL || 'http://localhost:5001',
         autoConnect = true
     } = options;
 

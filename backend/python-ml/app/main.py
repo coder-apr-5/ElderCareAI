@@ -41,8 +41,40 @@ from app.services.emergency_detector import emergency_detector
 from app.services.alert_service import AlertService
 from app.services.data_aggregator import DataAggregator
 
+# NEW: Advanced ML Services
+from app.services.multilingual_service import multilingual_assistant
+from app.services.health_state_detector import health_state_detector
+from app.services.intruder_detector import intruder_detector
+from datetime import datetime
+import asyncio
+
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-# Pydantic Models
+# Pydantic Models for New Features
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+class VoiceChatRequest(BaseModel):
+    audio: str = Field(..., description="Base64 encoded audio")
+    userId: str
+    language: Optional[str] = None
+
+class TranslateRequest(BaseModel):
+    text: str
+    fromLanguage: str
+    toLanguage: str
+
+class EnrollFaceRequest(BaseModel):
+    userId: str
+    name: str
+    relationship: str
+    images: List[str] # List of base64 images
+
+class VisionComprehensiveRequest(BaseModel):
+    userId: str
+    image: str # Base64
+    timestamp: Optional[str] = None
+
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+# Existing Models
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 class VisionAnalysisRequest(BaseModel):
@@ -548,11 +580,6 @@ async def send_alert(request: AlertRequest):
 async def analyze_activity(request: ActivityAnalysisRequest):
     """
     Analyze activity patterns.
-    
-    Analyzes:
-    - Eating patterns
-    - Sleep quality
-    - Camera activity/inactivity
     """
     try:
         from app.models.activity_analyzer import activity_analyzer
@@ -568,6 +595,140 @@ async def analyze_activity(request: ActivityAnalysisRequest):
         
     except Exception as e:
         logger.error(f"Activity analysis error: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+# NEW: Multilingual Voice Assistant
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+@app.post("/api/voice/chat", tags=["Voice"])
+async def voice_chat(request: VoiceChatRequest):
+    """
+    Process voice message and return AI response with audio.
+    Supported 30+ languages using Whisper & GPT-4.
+    """
+    try:
+        result = await multilingual_assistant.process_voice_message(
+            audio_base64=request.audio,
+            user_id=request.userId,
+            preferred_language=request.language
+        )
+        return result
+    except Exception as e:
+        logger.error(f"Voice chat error: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.post("/api/voice/translate", tags=["Voice"])
+async def translate_message(request: TranslateRequest):
+    """
+    Translate text between languages conserving context.
+    """
+    try:
+        translation = await multilingual_assistant.translate_text(
+            text=request.text,
+            from_lang=request.fromLanguage,
+            to_lang=request.toLanguage
+        )
+        return {"translation": translation}
+    except Exception as e:
+        logger.error(f"Translation error: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+# NEW: Intruder & Security
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+@app.post("/api/intruder/enroll", tags=["Security"])
+async def enroll_face(request: EnrollFaceRequest):
+    """
+    Enroll a known person's face (family, caregiver).
+    """
+    try:
+        success = False
+        # Enroll using first image for now
+        if request.images:
+            success = intruder_detector.enroll_face(
+                user_id=request.userId,
+                name=request.name,
+                relation=request.relationship,
+                image_base64=request.images[0]
+            )
+        
+        if success:
+            return {"success": True, "message": f"Enrolled {request.name}"}
+        else:
+            raise HTTPException(status_code=400, detail="Could not detect face in image")
+            
+    except Exception as e:
+        logger.error(f"Enrollment error: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+# NEW: Comprehensive Vision (Parallel)
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+@app.post("/api/vision/comprehensive-analysis", tags=["Vision"])
+async def comprehensive_vision(request: VisionComprehensiveRequest):
+    """
+    Run ALL vision analyses in parallel:
+    - Emotion
+    - Fall Detection
+    - Health State (Fainting/Sleeping)
+    - Intruder Detection
+    """
+    try:
+        timestamp = datetime.fromisoformat(request.timestamp) if request.timestamp else datetime.now()
+        
+        # Run in parallel
+        # Note: vision_service methods need to be async
+        
+        results = await asyncio.gather(
+            vision_service.analyze_emotion_only(request.image),
+            vision_service.detect_fall_only(request.image),
+            health_state_detector.analyze_health_state(request.userId, request.image, timestamp),
+            intruder_detector.detect_intruder(request.userId, request.image, timestamp),
+            return_exceptions=True
+        )
+        
+        emotion_res, fall_res, health_res, intruder_res = results
+        
+        # Handle exceptions in results
+        def check_res(res, name):
+            if isinstance(res, Exception):
+                logger.error(f"{name} analysis failed: {res}")
+                return {}
+            return res
+
+        emotion_res = check_res(emotion_res, "Emotion")
+        fall_res = check_res(fall_res, "Fall")
+        health_res = check_res(health_res, "Health")
+        intruder_res = check_res(intruder_res, "Intruder")
+        
+        response = {
+            'timestamp': timestamp.isoformat(),
+            'user_id': request.userId,
+            'emotion': emotion_res,
+            'fall': fall_res,
+            'health_state': health_res,
+            'security': intruder_res,
+            'alerts': []
+        }
+        
+        # Aggregate Alerts
+        if fall_res.get('fall_detected'):
+            response['alerts'].append({'type': 'fall', 'severity': 'critical', 'message': 'Fall detected!'})
+            
+        if health_res.get('alert_level') == 'emergency':
+            response['alerts'].append({'type': 'health', 'severity': 'critical', 'message': health_res.get('recommendation')})
+            
+        if intruder_res.get('alert_required'):
+            response['alerts'].append({'type': 'security', 'severity': 'critical', 'message': intruder_res.get('alert_message')})
+            
+        return response
+
+    except Exception as e:
+        logger.error(f"Comprehensive analysis error: {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
 
