@@ -29,6 +29,30 @@ export const authenticate = async (
       return;
     }
 
+    // ━━━ MOCK AUTH FOR DEVELOPMENT ━━━
+    if (process.env.NODE_ENV === 'development' && token.startsWith('mock_')) {
+      logger.info('🔓 Using mock authentication token');
+      try {
+        // Expected format: mock_base64json
+        const jsonStr = Buffer.from(token.replace('mock_', ''), 'base64').toString('utf-8');
+        const mockUser = JSON.parse(jsonStr);
+
+        req.user = {
+          uid: mockUser.uid || 'mock-user-id',
+          email: mockUser.email || 'mock@eldernest.ai',
+          role: mockUser.role || 'elder',
+          emailVerified: true,
+        };
+
+        logger.debug(`Authenticated mock user: ${req.user.uid} (${req.user.role})`);
+        next();
+        return;
+      } catch (e) {
+        logger.warn('Failed to parse mock token', e);
+        // Fall through to real verification
+      }
+    }
+
     const decodedToken = await auth.verifyIdToken(token);
 
     let role: UserRole = 'elder';
@@ -58,6 +82,11 @@ export const authenticate = async (
         sendUnauthorized(res, 'Token expired. Please log in again.');
         return;
       }
+    }
+    // If running in demo mode without valid creds, verifyIdToken will fail.
+    // We should inform developer.
+    if (process.env.NODE_ENV === 'development') {
+      logger.warn('Authentication failed. If you are using Mock Mode, ensure your controller returns a mock_ token.');
     }
     sendUnauthorized(res, 'Invalid authentication token');
   }

@@ -19,6 +19,7 @@ import chatRoutes from './routes/chat.routes';
 import elderRoutes from './routes/elder.routes';
 import familyRoutes from './routes/family.routes';
 import healthRoutes from './routes/health.routes';
+import authRoutes from './routes/auth.routes';
 
 // Create Express app
 const app: Application = express();
@@ -34,7 +35,7 @@ app.use(cors({
   origin: (origin, callback) => {
     // Allow requests with no origin (mobile apps, curl, etc.)
     if (!origin) return callback(null, true);
-    
+
     if (config.security.allowedOrigins.includes(origin) || config.isDevelopment) {
       callback(null, true);
     } else {
@@ -114,6 +115,8 @@ app.get('/health', (_req: Request, res: Response) => {
 });
 
 // ━━━ API ROUTES ━━━
+app.use('/api/auth', authRoutes); // Auth routes (version independent or legacy)
+
 const apiPrefix = `/api/${config.server.apiVersion}`;
 
 app.use(`${apiPrefix}/chat`, chatRoutes);
