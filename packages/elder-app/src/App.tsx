@@ -14,13 +14,16 @@ import ProfileSetupPage from "@/pages/auth/ProfileSetupPage";
 // Protected Pages
 import { HomePage } from "@/pages/HomePage";
 import ChatPage from "@/pages/ChatPage";
+import ElderProfilePage from "@/pages/elder/ProfilePage";
 
 // Family Pages
 import { DashboardLayout } from "@/layout/family/DashboardLayout";
 import { DashboardPage } from "@/pages/family/DashboardPage";
 import { ActivityPage } from "@/pages/family/ActivityPage";
 import { AlertsPage } from "@/pages/family/AlertsPage";
-import { ProfilePage } from "@/pages/family/ProfilePage";
+import { ElderProfileView } from "@/pages/family/ElderProfileView";
+import { MyProfilePage } from "@/pages/family/MyProfilePage";
+import { ConnectElderPage } from "@/pages/family/ConnectElderPage";
 import { SettingsPage } from "@/pages/family/SettingsPage";
 
 import { ProtectedRoute } from "@elder-nest/shared";
@@ -62,6 +65,12 @@ function App() {
               </ProtectedRoute>
             } />
 
+            <Route path="/profile" element={
+              <ProtectedRoute allowedRoles={['elder']}>
+                <ElderProfilePage />
+              </ProtectedRoute>
+            } />
+
             {/* Family Portal Routes */}
             <Route path="/family" element={
               <ProtectedRoute allowedRoles={['family']}>
@@ -71,7 +80,9 @@ function App() {
               <Route index element={<DashboardPage />} />
               <Route path="activity" element={<ActivityPage />} />
               <Route path="alerts" element={<AlertsPage />} />
-              <Route path="profile" element={<ProfilePage />} />
+              <Route path="profile" element={<ElderProfileView />} />
+              <Route path="my-profile" element={<MyProfilePage />} />
+              <Route path="connect" element={<ConnectElderPage />} />
               <Route path="settings" element={<SettingsPage />} />
             </Route>
 

@@ -13,7 +13,7 @@ export interface ProtectedRouteProps {
 
 const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children, allowedRoles, requireSetup = true }) => {
     const [loading, setLoading] = useState(true);
-    const [user, setUser] = useState<any>(null);
+    const [, setUser] = useState<any>(null);
     const navigate = useNavigate();
     const location = useLocation();
 
@@ -28,22 +28,22 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children, allowedRoles,
                 // Fetch full user profile
                 const userDocRef = doc(db, 'users', firebaseUser.uid);
                 const userSnap = await getDoc(userDocRef);
-                
+
                 if (!userSnap.exists()) {
                     // User authenticated but no DB record? Rare.
                     console.error("No user document found");
-                     navigate('/auth/login');
-                     return;
+                    navigate('/auth/login');
+                    return;
                 }
 
                 const userData = userSnap.data();
-                
+
                 // 1. Role Check
                 if (allowedRoles && !allowedRoles.includes(userData.role)) {
                     // Wrong role (e.g. family trying to access elder pages)
                     // Redirect to their appropriate home or denied page
-                    if (userData.role === 'family') navigate('/family'); 
-                    else navigate('/unauthorized'); 
+                    if (userData.role === 'family') navigate('/family');
+                    else navigate('/unauthorized');
                     return;
                 }
 
@@ -53,12 +53,12 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children, allowedRoles,
                     navigate('/auth/profile-setup');
                     return;
                 }
-                
+
                 // If we are ON the setup page, but setup IS complete -> Redirect to Home
                 // This prevents users from getting stuck in setup loop or redoing it unnecessarily
                 if (location.pathname === '/auth/profile-setup' && userData.profileSetupComplete) {
-                     navigate('/');
-                     return;
+                    navigate('/');
+                    return;
                 }
 
                 setUser({ ...firebaseUser, ...userData });

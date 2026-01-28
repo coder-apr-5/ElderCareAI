@@ -3,6 +3,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { EmergencyButton } from "@/features/emergency/EmergencyButton";
 import { MoodSelector } from "@/features/mood/MoodSelector";
 import { MedicineList } from "@/features/medicine/MedicineList";
+import { SmartHomeCamera } from "@/features/camera/SmartHomeCamera";
 import { motion } from "framer-motion";
 import {
   Sun,
@@ -17,7 +18,8 @@ import {
   ShieldCheck,
   Activity,
   LogOut,
-  ArrowLeft
+  ArrowLeft,
+  User
 } from "lucide-react";
 
 export const HomePage = () => {
@@ -47,6 +49,7 @@ export const HomePage = () => {
 
   /* ---------------- USER DATA ---------------- */
   const [userName, setUserName] = useState("Friend");
+  const [photoURL, setPhotoURL] = useState<string | null>(null);
   const [connectionCode, setConnectionCode] = useState<string | null>(null);
   const [emergencyContact, setEmergencyContact] = useState<string | null>(null);
 
@@ -65,6 +68,7 @@ export const HomePage = () => {
           const data = snap.data();
           setConnectionCode(data.connectionCode);
           setEmergencyContact(data.emergencyContact);
+          setPhotoURL(data.photoURL || null);
         }
       } catch (e) {
         console.error(e);
@@ -115,8 +119,8 @@ export const HomePage = () => {
   return (
     <div
       className={`min-h-screen w-full transition-colors duration-500 ease-in-out ${isDarkMode
-          ? "bg-slate-950 text-white"
-          : "bg-gradient-to-br from-blue-50 via-indigo-50 to-white text-slate-800"
+        ? "bg-slate-950 text-white"
+        : "bg-gradient-to-br from-blue-50 via-indigo-50 to-white text-slate-800"
         }`}
     >
       {/* ================= TOP BAR ================= */}
@@ -181,6 +185,20 @@ export const HomePage = () => {
               aria-label="Logout"
             >
               <LogOut size={24} />
+            </motion.button>
+
+            <motion.button
+              whileHover={{ scale: 1.1 }}
+              whileTap={{ scale: 0.95 }}
+              onClick={() => navigate('/profile')}
+              className="w-12 h-12 rounded-2xl bg-indigo-100 dark:bg-slate-700 overflow-hidden shadow-lg border-2 border-white dark:border-slate-600 flex items-center justify-center"
+              aria-label="Profile"
+            >
+              {photoURL ? (
+                <img src={photoURL} alt={userName} className="w-full h-full object-cover" />
+              ) : (
+                <User size={24} className="text-indigo-500 dark:text-indigo-300" />
+              )}
             </motion.button>
           </div>
         </div>
@@ -264,52 +282,7 @@ export const HomePage = () => {
 
             {/* CAMERA MONITORING PART (NEW) */}
             <motion.div variants={itemVariants}>
-              <div className="rounded-[2.5rem] bg-slate-900 text-white relative overflow-hidden shadow-2xl shadow-slate-400/20 dark:shadow-none min-h-[250px] flex flex-col">
-                {/* Background Pattern */}
-                <div className="absolute inset-0 opacity-20"
-                  style={{
-                    backgroundImage: `radial-gradient(circle at 2px 2px, rgba(255,255,255,0.15) 1px, transparent 0)`,
-                    backgroundSize: '24px 24px'
-                  }}
-                />
-
-                {/* Header */}
-                <div className="relative z-10 p-6 flex justify-between items-start border-b border-white/10 bg-white/5 backdrop-blur-sm">
-                  <div className="flex items-center gap-3">
-                    <div className="bg-emerald-500/20 p-2 rounded-xl">
-                      <Camera className="text-emerald-400" size={24} />
-                    </div>
-                    <div>
-                      <h3 className="text-xl font-bold tracking-tight">Home Master</h3>
-                      <p className="text-emerald-400 text-xs font-mono tracking-wider flex items-center gap-1.5 uppercase">
-                        <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-                        Live Feed Active
-                      </p>
-                    </div>
-                  </div>
-
-                  <div className="flex items-center gap-2 bg-indigo-500/20 px-3 py-1.5 rounded-full border border-indigo-500/30">
-                    <ShieldCheck size={16} className="text-indigo-300" />
-                    <span className="text-xs font-bold text-indigo-200 uppercase tracking-wider">AI Guard On</span>
-                  </div>
-                </div>
-
-                {/* Main Content Area */}
-                <div className="flex-1 relative p-8 flex items-center justify-center">
-                  {/* Scanning Effect */}
-                  <div className="absolute inset-0 bg-gradient-to-b from-transparent via-cyan-500/5 to-transparent h-full w-full animate-accordion-down opacity-30 pointer-events-none" />
-
-                  <div className="text-center relative z-10">
-                    <div className="inline-flex items-center justify-center w-20 h-20 rounded-full bg-white/5 mb-4 border border-white/10 shadow-[0_0_30px_rgba(255,255,255,0.05)]">
-                      <Activity className="text-emerald-400" size={40} />
-                    </div>
-                    <h4 className="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-b from-white to-white/60">
-                      Room Secure
-                    </h4>
-                    <p className="text-slate-400 text-sm mt-1">No unusual activity detected</p>
-                  </div>
-                </div>
-              </div>
+              <SmartHomeCamera />
             </motion.div>
 
             {/* OVERVIEW CARDS */}

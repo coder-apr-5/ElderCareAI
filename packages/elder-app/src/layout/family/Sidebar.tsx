@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom";
-import { LayoutDashboard, Activity, AlertTriangle, Settings, Users } from "lucide-react";
+import { LayoutDashboard, Activity, AlertTriangle, Settings, Users, User } from "lucide-react";
 
 export const Sidebar = () => {
     return (
@@ -23,6 +23,10 @@ export const Sidebar = () => {
                 <Link to="/family/profile" className="flex items-center gap-3 px-4 py-3 text-gray-400 hover:bg-gray-800 hover:text-white rounded-lg transition-colors">
                     <Users size={20} />
                     <span>Elder Profile</span>
+                </Link>
+                <Link to="/family/my-profile" className="flex items-center gap-3 px-4 py-3 text-gray-400 hover:bg-gray-800 hover:text-white rounded-lg transition-colors">
+                    <User size={20} />
+                    <span>My Profile</span>
                 </Link>
             </nav>
             <div className="p-4 border-t border-gray-700">
