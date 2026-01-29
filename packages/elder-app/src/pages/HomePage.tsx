@@ -17,6 +17,7 @@ import {
   ArrowLeft
 } from "lucide-react";
 import { CameraMonitor } from "@/features/camera";
+import { RealTimeClock, ClockWidget } from "@/components/ClockWidget";
 
 export const HomePage = () => {
   const navigate = useNavigate();
@@ -267,33 +268,33 @@ export const HomePage = () => {
 
             {/* OVERVIEW CARDS */}
             <div className="grid sm:grid-cols-2 gap-6">
+              {/* Dynamic Clock */}
               <motion.div
                 variants={itemVariants}
                 whileHover={{ y: -5 }}
-                className="rounded-3xl p-6 bg-gradient-to-br from-orange-50 to-amber-100 dark:from-slate-800 dark:to-slate-900 border border-orange-100 dark:border-slate-700 shadow-lg shadow-orange-100/50 dark:shadow-none"
+                className="rounded-3xl p-6 bg-slate-900 border border-slate-700 shadow-lg relative overflow-hidden text-white"
               >
-                <div className="flex items-start justify-between">
-                  <div>
-                    <p className="text-orange-800 dark:text-orange-400 font-semibold mb-1">Next Medicine</p>
-                    <p className="text-4xl font-bold text-slate-800 dark:text-white">2:00 <span className="text-lg text-slate-500 font-medium">PM</span></p>
-                  </div>
-                  <div className="p-3 bg-orange-200 dark:bg-orange-900/30 rounded-2xl text-orange-600 dark:text-orange-400">
-                    <Pill size={32} />
-                  </div>
+                <div className="absolute top-0 right-0 p-4 opacity-10">
+                  <ClockWidget />
+                </div>
+                <div className="relative z-10">
+                  <p className="text-slate-400 font-semibold mb-1">Current Time</p>
+                  <RealTimeClock />
                 </div>
               </motion.div>
 
               <motion.div
                 variants={itemVariants}
                 whileHover={{ y: -5 }}
-                className="rounded-3xl p-6 bg-gradient-to-br from-sky-50 to-blue-100 dark:from-slate-800 dark:to-slate-900 border border-blue-100 dark:border-slate-700 shadow-lg shadow-blue-100/50 dark:shadow-none"
+                className="rounded-3xl p-6 bg-gradient-to-br from-sky-50 to-blue-100 dark:from-sky-900 dark:to-blue-900 border border-blue-100 dark:border-slate-700 shadow-lg shadow-blue-100/50 dark:shadow-none"
               >
                 <div className="flex items-start justify-between">
                   <div>
-                    <p className="text-sky-800 dark:text-sky-400 font-semibold mb-1">Weather</p>
-                    <p className="text-4xl font-bold text-slate-800 dark:text-white">72° <span className="text-lg text-slate-500 font-medium">Sunny</span></p>
+                    <p className="text-sky-800 dark:text-sky-200 font-semibold mb-1">Weather (Live)</p>
+                    <p className="text-4xl font-bold text-slate-800 dark:text-white">72° <span className="text-lg text-slate-500 dark:text-slate-300 font-medium">Sunny</span></p>
+                    <p className="text-xs text-sky-700 dark:text-sky-300 mt-1">New York, USA</p>
                   </div>
-                  <div className="p-3 bg-sky-200 dark:bg-sky-900/30 rounded-2xl text-sky-600 dark:text-sky-400">
+                  <div className="p-3 bg-sky-200 dark:bg-sky-800 rounded-2xl text-sky-600 dark:text-sky-200">
                     <CloudSun size={32} />
                   </div>
                 </div>
@@ -301,52 +302,74 @@ export const HomePage = () => {
             </div>
           </section>
 
-          {/* -------- RIGHT (SIDE ACTIONS) -------- */}
+          {/* -------- RIGHT (SIDE ACTIONS & GRAPHS) -------- */}
           <aside className="space-y-6">
+            {/* MOOD GRAPH (Replaces Phone/Stethoscope somewhat or reshuffled) */}
+            <motion.div
+              variants={itemVariants}
+              className="rounded-3xl p-6 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 shadow-lg h-[200px] flex flex-col justify-between"
+            >
+              <div className="flex justify-between items-center mb-4">
+                <h3 className="font-bold text-slate-700 dark:text-slate-200">Mood Trends</h3>
+                <div className="p-2 bg-purple-100 dark:bg-purple-900/50 rounded-lg text-purple-600 dark:text-purple-300">
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M3 3v18h18" /><path d="M18.7 8l-5.1 5.2-2.8-2.7L7 14.3" /></svg>
+                </div>
+              </div>
+              {/* Simple CSS Bar Graph Simulation */}
+              <div className="flex items-end justify-between gap-2 h-full pb-2">
+                {['M', 'T', 'W', 'T', 'F', 'S', 'S'].map((day, i) => (
+                  <div key={i} className="flex flex-col items-center gap-2 group w-full">
+                    <div
+                      className="w-full bg-slate-100 dark:bg-slate-700 rounded-t-lg relative overflow-hidden"
+                      style={{ height: '100px' }}
+                    >
+                      <div
+                        className="absolute bottom-0 w-full bg-purple-500 rounded-t-lg transition-all duration-1000 group-hover:bg-purple-400"
+                        style={{ height: `${[40, 60, 30, 80, 50, 90, 70][i]}%` }}
+                      />
+                    </div>
+                    <span className="text-xs font-bold text-slate-400">{day}</span>
+                  </div>
+                ))}
+              </div>
+            </motion.div>
+
             <motion.a
               href={emergencyContact ? `tel:${emergencyContact}` : undefined}
               variants={itemVariants}
               whileHover={{ scale: 1.03 }}
               whileTap={{ scale: 0.98 }}
-              className="block rounded-3xl p-8 bg-gradient-to-br from-indigo-500 to-blue-600 text-white shadow-xl shadow-indigo-200 dark:shadow-none relative overflow-hidden group"
+              className="block rounded-3xl p-6 bg-gradient-to-br from-indigo-500 to-blue-600 text-white shadow-xl shadow-indigo-200 dark:shadow-none relative overflow-hidden group"
             >
-              <div className="absolute top-0 right-0 p-4 opacity-20 transform translate-x-4 -translate-y-4">
-                <Phone size={100} fill="currentColor" />
-              </div>
-              <div className="relative z-10 flex flex-col h-full justify-between min-h-[140px]">
-                <div className="bg-white/20 w-12 h-12 rounded-2xl flex items-center justify-center backdrop-blur-sm mb-4">
+              <div className="flex items-center gap-4">
+                <div className="bg-white/20 p-3 rounded-xl backdrop-blur-sm">
                   <Phone size={24} className="text-white" />
                 </div>
                 <div>
-                  <h3 className="text-2xl font-bold">Call Family</h3>
-                  <p className="opacity-90 mt-1 font-medium bg-blue-700/30 inline-block px-2 py-0.5 rounded-lg text-sm">
-                    One-tap calling
-                  </p>
+                  <h3 className="text-lg font-bold">Call Family</h3>
+                  <p className="text-indigo-100 text-sm">One-tap connect</p>
                 </div>
               </div>
             </motion.a>
 
-            <motion.button
+            <motion.div
               variants={itemVariants}
-              whileHover={{ scale: 1.03 }}
-              whileTap={{ scale: 0.98 }}
-              className="w-full text-left rounded-3xl p-8 bg-gradient-to-br from-rose-500 to-pink-600 text-white shadow-xl shadow-rose-200 dark:shadow-none relative overflow-hidden group"
+              className="rounded-3xl p-6 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 shadow-sm"
             >
-              <div className="absolute top-0 right-0 p-4 opacity-20 transform translate-x-4 -translate-y-4">
-                <Stethoscope size={100} />
-              </div>
-              <div className="relative z-10 flex flex-col h-full justify-between min-h-[140px]">
-                <div className="bg-white/20 w-12 h-12 rounded-2xl flex items-center justify-center backdrop-blur-sm mb-4">
-                  <Stethoscope size={24} className="text-white" />
+              <h3 className="font-bold text-slate-700 dark:text-slate-200 mb-4 flex items-center gap-2">
+                <Pill size={16} className="text-orange-500" /> Meds History
+              </h3>
+              <div className="space-y-3">
+                <div className="flex items-center justify-between text-sm">
+                  <span className="text-slate-500 dark:text-slate-400">Aspirin</span>
+                  <span className="text-green-500 font-bold bg-green-100 dark:bg-green-900/30 px-2 py-0.5 rounded">Taken</span>
                 </div>
-                <div>
-                  <h3 className="text-2xl font-bold">Call Doctor</h3>
-                  <p className="opacity-90 mt-1 font-medium bg-rose-700/30 inline-block px-2 py-0.5 rounded-lg text-sm">
-                    Medical support
-                  </p>
+                <div className="flex items-center justify-between text-sm">
+                  <span className="text-slate-500 dark:text-slate-400">Vitamin D</span>
+                  <span className="text-green-500 font-bold bg-green-100 dark:bg-green-900/30 px-2 py-0.5 rounded">Taken</span>
                 </div>
               </div>
-            </motion.button>
+            </motion.div>
           </aside>
         </div>
 

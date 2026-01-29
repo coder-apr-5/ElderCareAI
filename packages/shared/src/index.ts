@@ -1,5 +1,6 @@
 export * from './types/user';
 export type { ElderUser, FamilyUser, FamilyMemberManual, UserProfile } from './types/user';
+export * from './types/health';
 export * from './lib/firebase/auth';
 export * from './lib/validation/auth';
 export type { LoginFormData, ForgotPasswordFormData, ElderSignupFormData, FamilySignupFormData } from './lib/validation/auth';

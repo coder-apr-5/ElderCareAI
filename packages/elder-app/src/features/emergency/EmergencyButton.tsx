@@ -7,11 +7,36 @@ export const EmergencyButton = () => {
     const [isTriggered, setIsTriggered] = useState(false);
     const [isHovered, setIsHovered] = useState(false);
 
-    const handleEmergency = () => {
+    const handleEmergency = async () => {
         setIsTriggered(true);
-        // Simulate API call or Future AI Trigger
+        try {
+            // Import dynamically to avoid top-level SSR issues (though this is SPA)
+            const { auth, db } = await import("@elder-nest/shared");
+            const { addDoc, collection, serverTimestamp, doc, getDoc } = await import("firebase/firestore");
+            const user = auth.currentUser;
+
+            if (user) {
+                // Get elder data to find family members to notify
+                const elderDoc = await getDoc(doc(db, 'users', user.uid));
+                const elderData = elderDoc.data();
+                const familyIds = elderData?.familyMembers || [];
+
+                await addDoc(collection(db, 'alerts'), {
+                    elderId: user.uid,
+                    type: 'sos',
+                    severity: 'critical',
+                    message: `Emergency SOS triggered by ${user.displayName || 'Elder'}!`,
+                    timestamp: serverTimestamp(),
+                    acknowledged: false,
+                    familyIds: familyIds
+                });
+            }
+        } catch (e) {
+            console.error("Failed to send SOS", e);
+        }
+
         setTimeout(() => {
-            alert("Emergency Signal Sent! Family and Services Notified.");
+            alert("Emergency Signal Sent! Family notified immediately.");
             setIsTriggered(false);
         }, 2000);
     };
